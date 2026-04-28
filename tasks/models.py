@@ -3,6 +3,12 @@ from django.db import models
 
 
 class Project(models.Model):
+	"""Проект — это контейнер для задач и участников.
+	
+	Один проект = один набор участников + набор задач.
+	Владелец (creator) создает проект и может управлять участниками.
+	Участники (participants) могут видеть и работать с задачами в проекте.
+	"""
 	name = models.CharField(max_length=255)
 	description = models.TextField(blank=True)
 	creator = models.ForeignKey(
@@ -20,6 +26,7 @@ class Project(models.Model):
 		ordering = ["-created_at"]
 
 	def save(self, *args, **kwargs):
+		"""При создании проекта автоматически добавляем его создателя в список участников."""
 		is_new = self.pk is None
 		super().save(*args, **kwargs)
 		if is_new:
@@ -29,7 +36,10 @@ class Project(models.Model):
 		return self.name
 
 
+
 class Task(models.Model):
+	"""Задача — это единица работы внутри проекта. Важные роли: author (создатель), assignee (исполнитель), project."""
+	
 	class Priority(models.TextChoices):
 		LOW = "LOW", "Low"
 		MEDIUM = "MEDIUM", "Medium"
@@ -78,6 +88,8 @@ class Task(models.Model):
 
 
 class TaskComment(models.Model):
+	"""Комментарий к задаче для обсуждения. Видны только участникам проекта."""
+	
 	task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="comments")
 	author = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
